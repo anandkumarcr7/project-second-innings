@@ -84,7 +84,7 @@ with st.sidebar:
 
     st.subheader("👤 Personal")
     current_age = st.number_input("Current Age", min_value=18, max_value=80, value=35, step=1)
-    retirement_age = st.number_input("Retirement Age", min_value=int(current_age), max_value=90, value=45, step=1)
+    retirement_age = st.number_input("Retirement Age", min_value=18, max_value=90, value=45, step=1)
     retirement_duration = st.number_input(
         "Retirement Duration (years)", min_value=1, max_value=60, value=40, step=1
     )
@@ -156,6 +156,10 @@ try:
     )
 except ValueError as exc:
     st.error(f"Input error: {exc}")
+    st.stop()
+
+if retirement_age <= current_age:
+    st.error(f"Retirement age ({int(retirement_age)}) must be greater than current age ({int(current_age)}).")
     st.stop()
 
 # ── Calculations (cached on input fingerprint) ────────────────────────────────
