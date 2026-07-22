@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: second-innings
+Version: 0.1.0
+Summary: Personal financial independence planning and retirement simulation
+Requires-Python: >=3.10
+Requires-Dist: streamlit>=1.35
+Requires-Dist: pandas>=2.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
