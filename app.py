@@ -40,15 +40,22 @@ if _EXPECTED:
 
 # ── Formatting helpers ────────────────────────────────────────────────────────
 
-def _fmt(value: float) -> str:
-    """Format a rupee amount in crores / lakhs for readability."""
+def _fmt(value: float, currency: str = "INR") -> str:
+    """Format a monetary amount with currency-appropriate suffix."""
     abs_v = abs(value)
     sign = "-" if value < 0 else ""
-    if abs_v >= 1e7:
-        return f"{sign}₹{abs_v / 1e7:.2f} Cr"
-    if abs_v >= 1e5:
-        return f"{sign}₹{abs_v / 1e5:.2f} L"
-    return f"{sign}₹{abs_v:,.0f}"
+    if currency == "USD":
+        if abs_v >= 1_000_000:
+            return f"{sign}${abs_v / 1_000_000:.2f} Mn"
+        if abs_v >= 1_000:
+            return f"{sign}${abs_v / 1_000:.2f} K"
+        return f"{sign}${abs_v:,.0f}"
+    else:  # INR
+        if abs_v >= 1e7:
+            return f"{sign}₹{abs_v / 1e7:.2f} Cr"
+        if abs_v >= 1e5:
+            return f"{sign}₹{abs_v / 1e5:.2f} L"
+        return f"{sign}₹{abs_v:,.0f}"
 
 
 def _pct(value: float) -> str:
@@ -71,7 +78,9 @@ st.caption("Financial Independence Planning — private, local, deterministic")
 with st.sidebar:
     st.header("Retirement Assumptions")
 
-    scenario_name = st.text_input("Scenario Name", value="India 2028")
+    scenario_name = st.text_input("Scenario Name", value="FIRE Planning", max_chars=50)
+    currency = st.selectbox("Currency", ["INR", "USD"], index=0)
+    _symbol = "₹" if currency == "INR" else "$"
 
     st.subheader("👤 Personal")
     current_age = st.number_input("Current Age", min_value=18, max_value=80, value=35, step=1)
@@ -82,18 +91,18 @@ with st.sidebar:
 
     st.subheader("💰 Finances")
     monthly_expenses = st.number_input(
-        "Monthly Expenses (₹)", min_value=10_000, value=200_000, step=10_000,
-        help="Current retirement monthly spend in today's rupees"
+        f"Monthly Expenses ({_symbol})", min_value=0, value=200_000, step=10_000,
+        help="Current retirement monthly spend in today's money"
     )
     current_assets = st.number_input(
-        "Current Investable Assets (₹)", min_value=0, value=100_000_000, step=1_000_000
+        f"Current Investable Assets ({_symbol})", min_value=0, value=100_000_000, step=1_000_000
     )
     average_annual_savings = st.number_input(
-        "Average Annual Savings (₹)", min_value=0, value=0, step=100_000,
+        f"Average Annual Savings ({_symbol})", min_value=0, value=0, step=100_000,
         help="Expected savings added each year between now and retirement"
     )
     passive_income = st.number_input(
-        "Annual Passive Income (₹)", min_value=0, value=0, step=100_000,
+        f"Annual Passive Income ({_symbol})", min_value=0, value=0, step=100_000,
         help="Rental / dividend income received after retirement"
     )
 
@@ -119,6 +128,11 @@ with st.sidebar:
                                 "sleep_best": "Sleep Best"}[x],
     )
 
+# ── Bind currency-aware formatter ────────────────────────────────────────────
+_fmt_base = _fmt
+_fmt = lambda v: _fmt_base(v, currency)          # noqa: E731
+real_col = f"Real Corpus (Today {_symbol})"
+
 # ── Build scenario (validate inputs) ─────────────────────────────────────────
 
 try:
@@ -138,6 +152,7 @@ try:
         sleep_well_margin=sleep_well_margin,
         sleep_best_margin=sleep_best_margin,
         average_annual_savings=float(average_annual_savings),
+        currency=currency,
     )
 except ValueError as exc:
     st.error(f"Input error: {exc}")
@@ -277,13 +292,13 @@ for r in sim.projection:
         "Passive Income": r.passive_income,
         "Net Withdrawal": r.net_withdrawal,
         "Closing Corpus": r.closing_corpus,
-        "Real Corpus (Today ₹)": r.real_closing_corpus,
+        real_col: r.real_closing_corpus,
         "Status": r.status,
     })
 df = pd.DataFrame(rows)
 
 # Chart
-chart_df = df[["Year", "Closing Corpus", "Real Corpus (Today ₹)"]].set_index("Year")
+chart_df = df[["Year", "Closing Corpus", real_col]].set_index("Year")
 st.line_chart(chart_df, color=["#1f77b4", "#ff7f0e"])
 st.caption("Blue = Nominal corpus  |  Orange = Inflation-adjusted corpus (today's purchasing power)")
 
@@ -291,13 +306,13 @@ st.caption("Blue = Nominal corpus  |  Orange = Inflation-adjusted corpus (today'
 with st.expander("Year-by-Year Table", expanded=False):
     display_df = df.copy()
     for col in ["Opening Corpus", "Investment Growth", "Taxes", "Expenses",
-                "Passive Income", "Net Withdrawal", "Closing Corpus", "Real Corpus (Today ₹)"]:
+                "Passive Income", "Net Withdrawal", "Closing Corpus", real_col]:
         display_df[col] = display_df[col].apply(_fmt)
 
     def _highlight_fail(row):
         return ["background-color: #ffe0e0" if row["Status"] == "FAIL" else "" for _ in row]
 
-    st.dataframe(display_df.style.apply(_highlight_fail, axis=1), use_container_width=True)
+    st.dataframe(display_df.style.apply(_highlight_fail, axis=1), width="stretch")
 
     # CSV download
     csv_bytes = df.to_csv(index=False).encode("utf-8")
@@ -327,7 +342,7 @@ for r in stress_results:
     stress_rows.append({
         "Test": r.test_name,
         "Result": r.result,
-        "Failure Year": r.failure_year if r.failure_year else "—",
+        "Failure Year": r.failure_year,  # None renders as empty cell; keeps column integer-typed
         "Ending Corpus": _fmt(r.ending_corpus),
         "Severity": r.severity,
         "Changes": ", ".join(f"{k}={v}" for k, v in r.assumptions_changed.items()),
@@ -341,7 +356,7 @@ def _highlight_stress(row):
 
 st.dataframe(
     stress_df.style.apply(_highlight_stress, axis=1),
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )
 

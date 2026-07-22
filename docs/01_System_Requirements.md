@@ -89,7 +89,12 @@ The system shall allow the user to enter the planned retirement age.
 
 The system shall allow the user to select the display currency.
 
-The initial supported currency shall be INR.
+Supported currencies in the initial release:
+
+| Currency | Symbol | Large-value suffix | Small-value suffix |
+|---|---|---|---|
+| INR | ₹ | Cr (crore = 10 million) | L (lakh = 100 thousand) |
+| USD | $ | Mn (million) | K (thousand) |
 
 ### FR-009 — Tax Rate
 

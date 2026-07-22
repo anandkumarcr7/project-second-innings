@@ -32,7 +32,7 @@ A retirement scenario contains all user assumptions.
 | typical_return | percentage | Typical annual return |
 | optimistic_return | percentage | Optimistic annual return |
 | effective_tax_rate | percentage | Simplified tax rate on returns |
-| currency | text | Display currency |
+| currency | text | Display currency — "INR" or "USD" |
 | model_version | text | Calculation model version |
 
 ---
@@ -127,3 +127,6 @@ Example:
   "currency": "INR",
   "model_version": "0.1"
 }
+```
+
+For a USD scenario, set `"currency": "USD"`. Monetary values are always stored as plain numbers; the currency field controls display formatting only.

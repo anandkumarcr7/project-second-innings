@@ -233,7 +233,7 @@ The project shall initially operate under the following constraints:
 - No live brokerage connection.
 - No storage of passwords or banking credentials.
 - Initial retirement horizon of 40 years.
-- Initial primary currency of INR.
+- Supported display currencies: INR and USD.
 - Initial post-retirement earned income assumption of zero.
 
 ---
