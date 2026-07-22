@@ -55,4 +55,25 @@ Corpus Calculated successfully
 # UC-009 - Compare Scenarios
 - Compare Scenario A vs Scenario B side by side
 
+# UC-010 - Project Assets at Retirement
+## Goal
+- Estimate how much investable corpus the user will have accumulated by the planned retirement age, by augmenting current assets with future savings
+## Primary Actor
+- User
+## Inputs
+- Current Assets
+- Average Annual Savings
+- Current Age
+- Retirement Age
+## Formula
+- Projected Assets at Retirement = Current Assets + (Retirement Age − Current Age) × Average Annual Savings
+## Outputs
+- Projected Assets at Retirement
+- Updated FI gap based on projected assets instead of current assets
+- Updated FI status (FI Achieved / Not Yet FI) based on projected assets
+## Acceptance Criteria
+- When Average Annual Savings = 0, Projected Assets = Current Assets and all existing FI calculations are unchanged
+- Projected Assets increases linearly with Average Annual Savings
+- The 40-year retirement projection and stress tests use Projected Assets as the opening corpus
+
 

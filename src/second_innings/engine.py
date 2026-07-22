@@ -214,16 +214,21 @@ def calculate_fi_targets(
                      "sleep_well": sleep_well,
                      "sleep_best": sleep_best}[selected_target]
 
-    funding_gap = target_corpus - scenario.current_assets
-    percent_complete = (scenario.current_assets / target_corpus * 100.0
+    years_to_retirement = max(scenario.retirement_age - scenario.current_age, 0)
+    projected_assets = (scenario.current_assets
+                        + years_to_retirement * scenario.average_annual_savings)
+
+    funding_gap = target_corpus - projected_assets
+    percent_complete = (projected_assets / target_corpus * 100.0
                         if target_corpus > 0 else 0.0)
-    fi_status = "FI Achieved" if scenario.current_assets >= target_corpus else "Not Yet FI"
+    fi_status = "FI Achieved" if projected_assets >= target_corpus else "Not Yet FI"
 
     return FITargetResult(
         sleep_okay_corpus=sleep_okay,
         sleep_well_corpus=sleep_well,
         sleep_best_corpus=sleep_best,
         current_assets=scenario.current_assets,
+        projected_assets=projected_assets,
         selected_target=selected_target,
         funding_gap=funding_gap,
         percent_complete=percent_complete,

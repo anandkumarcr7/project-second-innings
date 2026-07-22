@@ -557,3 +557,61 @@ class TestTC027InvalidScenarioFile:
             path.write_text(json.dumps({"scenario_name": "only_name"}), encoding="utf-8")
             with pytest.raises(ValueError, match="Invalid scenario data"):
                 load_scenario(path)
+
+
+# ---------------------------------------------------------------------------
+# UC-010  Projected assets at retirement
+# ---------------------------------------------------------------------------
+
+class TestUC010ProjectedAssets:
+    def test_zero_savings_projected_equals_current(self):
+        scenario = _make_scenario(average_annual_savings=0)
+        fi = calculate_fi_targets(scenario)
+        assert math.isclose(fi.projected_assets, scenario.current_assets, abs_tol=1.0)
+
+    def test_projected_assets_formula(self):
+        scenario = _make_scenario(
+            current_age=38,
+            retirement_age=45,
+            average_annual_savings=1_000_000,  # ₹10 lakh / year
+            current_assets=10_000_000,
+        )
+        expected = 10_000_000 + (45 - 38) * 1_000_000  # = 17_000_000
+        fi = calculate_fi_targets(scenario)
+        assert math.isclose(fi.projected_assets, expected, abs_tol=1.0)
+
+    def test_fi_status_uses_projected_assets(self):
+        """Savings should be able to push status from Not Yet FI to FI Achieved."""
+        scenario_without = _make_scenario(
+            current_age=38,
+            retirement_age=45,
+            monthly_expenses=100_000,
+            retirement_duration_years=10,
+            current_assets=1_000,        # well below target
+            average_annual_savings=0,
+        )
+        fi_without = calculate_fi_targets(scenario_without, selected_target="sleep_okay")
+        assert fi_without.fi_status == "Not Yet FI"
+
+        scenario_with = dataclasses.replace(
+            scenario_without, average_annual_savings=5_000_000
+        )
+        fi_with = calculate_fi_targets(scenario_with, selected_target="sleep_okay")
+        assert fi_with.fi_status == "FI Achieved"
+
+    def test_funding_gap_uses_projected_assets(self):
+        scenario = _make_scenario(
+            current_age=38,
+            retirement_age=45,
+            average_annual_savings=1_000_000,
+            current_assets=10_000_000,
+            monthly_expenses=100_000,
+            retirement_duration_years=10,
+        )
+        fi = calculate_fi_targets(scenario, selected_target="sleep_okay")
+        expected_projected = 10_000_000 + 7 * 1_000_000
+        assert math.isclose(fi.funding_gap, fi.sleep_okay_corpus - expected_projected, abs_tol=2.0)
+
+    def test_negative_savings_raises(self):
+        with pytest.raises(ValueError, match="average_annual_savings"):
+            _make_scenario(average_annual_savings=-1)

@@ -35,6 +35,7 @@ class RetirementScenario:
     model_version: str = MODEL_VERSION
     sleep_well_margin: float = 0.10  # design margin for Sleep Well target
     sleep_best_margin: float = 0.25  # design margin for Sleep Best target
+    average_annual_savings: float = 0.0  # expected savings per year until retirement
 
     def __post_init__(self) -> None:
         if self.monthly_expenses <= 0:
@@ -47,6 +48,8 @@ class RetirementScenario:
             raise ValueError("Design margins must be non-negative.")
         if self.sleep_best_margin < self.sleep_well_margin:
             raise ValueError("sleep_best_margin must be >= sleep_well_margin.")
+        if self.average_annual_savings < 0:
+            raise ValueError("average_annual_savings must be non-negative.")
 
 
 @dataclass
@@ -86,9 +89,10 @@ class FITargetResult:
     sleep_well_corpus: float
     sleep_best_corpus: float
     current_assets: float
+    projected_assets: float    # current_assets + years_to_retirement × average_annual_savings
     selected_target: str       # "sleep_okay" | "sleep_well" | "sleep_best"
-    funding_gap: float         # target - current_assets  (negative = surplus)
-    percent_complete: float    # current_assets / target × 100
+    funding_gap: float         # target - projected_assets  (negative = surplus)
+    percent_complete: float    # projected_assets / target × 100
     fi_status: str             # "FI Achieved" | "Not Yet FI"
 
 

@@ -74,8 +74,8 @@ with st.sidebar:
     scenario_name = st.text_input("Scenario Name", value="India 2028")
 
     st.subheader("👤 Personal")
-    current_age = st.number_input("Current Age", min_value=18, max_value=80, value=38, step=1)
-    retirement_age = st.number_input("Retirement Age", min_value=int(current_age), max_value=85, value=45, step=1)
+    current_age = st.number_input("Current Age", min_value=18, max_value=80, value=35, step=1)
+    retirement_age = st.number_input("Retirement Age", min_value=int(current_age), max_value=90, value=45, step=1)
     retirement_duration = st.number_input(
         "Retirement Duration (years)", min_value=1, max_value=60, value=40, step=1
     )
@@ -86,7 +86,11 @@ with st.sidebar:
         help="Current retirement monthly spend in today's rupees"
     )
     current_assets = st.number_input(
-        "Current Investable Assets (₹)", min_value=0, value=114_000_000, step=1_000_000
+        "Current Investable Assets (₹)", min_value=0, value=100_000_000, step=1_000_000
+    )
+    average_annual_savings = st.number_input(
+        "Average Annual Savings (₹)", min_value=0, value=0, step=100_000,
+        help="Expected savings added each year between now and retirement"
     )
     passive_income = st.number_input(
         "Annual Passive Income (₹)", min_value=0, value=0, step=100_000,
@@ -133,6 +137,7 @@ try:
         effective_tax_rate=tax_rate,
         sleep_well_margin=sleep_well_margin,
         sleep_best_margin=sleep_best_margin,
+        average_annual_savings=float(average_annual_savings),
     )
 except ValueError as exc:
     st.error(f"Input error: {exc}")
@@ -144,8 +149,8 @@ except ValueError as exc:
 def _calculate(scenario_json: str, target: str):
     sc = RetirementScenario(**json.loads(scenario_json))
     fi = calculate_fi_targets(sc, selected_target=target)
-    sim = simulate(sc, sc.current_assets, sc.typical_return)
-    stress = run_stress_tests(sc)
+    sim = simulate(sc, fi.projected_assets, sc.typical_return)
+    stress = run_stress_tests(sc, opening_corpus=fi.projected_assets)
     return fi, sim, stress
 
 import dataclasses as _dc
@@ -165,7 +170,12 @@ with col1:
         st.warning(f"**{fi.fi_status}**")
 
 with col2:
-    st.metric("Current Assets", _fmt(fi.current_assets))
+    st.metric(
+        "Projected Assets at Retirement",
+        _fmt(fi.projected_assets),
+        delta=_fmt(fi.projected_assets - fi.current_assets) + " from savings"
+        if fi.projected_assets != fi.current_assets else None,
+    )
 
 with col3:
     target_label = selected_target.replace("_", " ").title()
@@ -194,7 +204,7 @@ st.header("Corpus Targets")
 t1, t2, t3 = st.columns(3)
 
 with t1:
-    delta_okay = fi.current_assets - fi.sleep_okay_corpus
+    delta_okay = fi.projected_assets - fi.sleep_okay_corpus
     st.metric(
         "😴 Sleep Okay",
         _fmt(fi.sleep_okay_corpus),
@@ -204,7 +214,7 @@ with t1:
     )
 
 with t2:
-    delta_well = fi.current_assets - fi.sleep_well_corpus
+    delta_well = fi.projected_assets - fi.sleep_well_corpus
     st.metric(
         "🌙 Sleep Well",
         _fmt(fi.sleep_well_corpus),
@@ -214,7 +224,7 @@ with t2:
     )
 
 with t3:
-    delta_best = fi.current_assets - fi.sleep_best_corpus
+    delta_best = fi.projected_assets - fi.sleep_best_corpus
     st.metric(
         "⭐ Sleep Best",
         _fmt(fi.sleep_best_corpus),
@@ -231,6 +241,8 @@ with st.expander("Active Assumptions", expanded=False):
         st.markdown(f"**Monthly Expenses:** {_fmt(monthly_expenses)}")
         st.markdown(f"**Annual Passive Income:** {_fmt(passive_income)}")
         st.markdown(f"**Current Assets:** {_fmt(current_assets)}")
+        st.markdown(f"**Average Annual Savings:** {_fmt(average_annual_savings)}")
+        st.markdown(f"**Projected Assets at Retirement:** {_fmt(fi.projected_assets)}")
     with c2:
         st.markdown(f"**Inflation:** {_pct(inflation_rate * 100)}")
         st.markdown(f"**Conservative Return:** {_pct(conservative_return * 100)}")

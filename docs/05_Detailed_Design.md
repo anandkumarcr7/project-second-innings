@@ -1,7 +1,7 @@
 # Project Second Innings
 ## Detailed Design
 
-**Version:** 0.1  
+**Version:** 0.2  
 **Status:** Draft
 
 ---
@@ -130,19 +130,43 @@ Sleep Best
       × (1 + Sleep Best Margin)
 
 # 7. Financial Independence Status
+
+## 7.1 Projected Assets at Retirement
+
+Before evaluating the funding gap, current assets are augmented with expected
+future savings accumulated between now and the planned retirement age.
+
+```text
+Years to Retirement
+    = Retirement Age - Current Age
+
+Projected Assets
+    = Current Assets + Years to Retirement × Average Annual Savings
+```
+
+When Average Annual Savings = 0, Projected Assets = Current Assets and all
+existing FI calculations are unchanged.
+
+## 7.2 Funding Gap and FI Status
+
+```text
 Funding Gap
-    = Selected Target Corpus - Current Assets
+    = Selected Target Corpus - Projected Assets
 
 Percent Complete
-    = Current Assets / Selected Target Corpus × 100
+    = Projected Assets / Selected Target Corpus × 100
 
 FI Achieved:
-Current Assets >= Selected Target Corpus
+Projected Assets >= Selected Target Corpus
 
 Not Yet FI:
-Current Assets < Selected Target Corpus
+Projected Assets < Selected Target Corpus
+```
 
 A negative funding gap represents surplus assets.
+
+The retirement projection and stress tests use Projected Assets as the
+opening corpus, not Current Assets.
 
 # 8. Initial Stress Tests
 ## 8.1 Early Market Crash
