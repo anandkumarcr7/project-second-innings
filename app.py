@@ -2,11 +2,15 @@
 Project Second Innings — Streamlit Dashboard
 
 Run with:  streamlit run app.py
+
+Password is read from the APP_PASSWORD environment variable (or Streamlit secrets).
+Set it before starting the app — never hardcode credentials in source files.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -17,6 +21,22 @@ from second_innings.models import RetirementScenario
 from second_innings.scenario_io import load_scenario, save_scenario
 
 _PRIVATE_DIR = Path("data/private")
+
+# ── Password gate ─────────────────────────────────────────────────────────────
+# Read from Streamlit secrets (cloud) or APP_PASSWORD env var (local).
+# Set the env var before running:  $env:APP_PASSWORD = "your-password"
+try:
+    _EXPECTED = st.secrets.get("APP_PASSWORD", None)
+except Exception:
+    _EXPECTED = None
+if _EXPECTED is None:
+    _EXPECTED = os.environ.get("APP_PASSWORD", "")
+
+if _EXPECTED:
+    _entered = st.sidebar.text_input("Password", type="password", key="_pw")
+    if _entered != _EXPECTED:
+        st.sidebar.warning("Enter the password to continue.")
+        st.stop()
 
 # ── Formatting helpers ────────────────────────────────────────────────────────
 
