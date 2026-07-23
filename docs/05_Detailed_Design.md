@@ -1,7 +1,7 @@
 # Project Second Innings
 ## Detailed Design
 
-**Version:** 0.2  
+**Version:** 0.3  
 **Status:** Draft
 
 ---
@@ -241,3 +241,23 @@ Proposed initial tolerance:
 ₹1,000
 
 For large crore-scale calculations, this provides more than sufficient precision.
+
+# 11. Multi-Scenario Projection Chart
+
+The retirement projection chart displays three closing corpus trajectories
+simultaneously. All three simulations use the same opening corpus (Projected
+Assets at Retirement) and the same expense and inflation assumptions. Only the
+annual return rate differs.
+
+| Curve | Return Rate Used | Colour |
+|---|---|---|
+| Optimistic | `optimistic_return` | Green |
+| Typical (Base Case) | `typical_return` | Blue |
+| Conservative | `conservative_return` | Red |
+
+The legend labels each curve with its scenario name and the actual return
+percentage (e.g. "Typical (8%)") so the reader can immediately identify the
+assumptions without consulting the sidebar.
+
+The chart does not display real (inflation-adjusted) corpus; the year-by-year
+table below the chart provides that column for users who need it.

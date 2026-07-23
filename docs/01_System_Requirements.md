@@ -173,6 +173,18 @@ The annual projection shall include:
 
 The system shall display the inflation-adjusted closing corpus for each year.
 
+### FR-021a — Multi-Scenario Projection Chart
+
+The system shall render a chart showing the closing corpus trajectory over the
+full retirement duration under all three return assumptions simultaneously:
+
+- conservative return,
+- typical return,
+- optimistic return.
+
+All three trajectories shall start from the same projected assets at retirement.
+The chart shall label each curve with its corresponding return rate.
+
 ### FR-022 — Failure Year
 
 If the corpus is exhausted, the system shall identify the first year in which the closing corpus becomes negative.
