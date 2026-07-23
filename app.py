@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -171,13 +172,15 @@ if retirement_age <= current_age:
 def _calculate(scenario_json: str, target: str):
     sc = RetirementScenario(**json.loads(scenario_json))
     fi = calculate_fi_targets(sc, selected_target=target)
-    sim = simulate(sc, fi.projected_assets, sc.typical_return)
+    sim_typical = simulate(sc, fi.projected_assets, sc.typical_return)
+    sim_conservative = simulate(sc, fi.projected_assets, sc.conservative_return)
+    sim_optimistic = simulate(sc, fi.projected_assets, sc.optimistic_return)
     stress = run_stress_tests(sc, opening_corpus=fi.projected_assets)
-    return fi, sim, stress
+    return fi, sim_typical, sim_conservative, sim_optimistic, stress
 
 import dataclasses as _dc
 _scenario_json = json.dumps(_dc.asdict(scenario))
-fi, sim, stress_results = _calculate(_scenario_json, selected_target)
+fi, sim, sim_conservative, sim_optimistic, stress_results = _calculate(_scenario_json, selected_target)
 
 # ── Section 1: FI Status ──────────────────────────────────────────────────────
 
@@ -304,10 +307,43 @@ for r in sim.projection:
     })
 df = pd.DataFrame(rows)
 
-# Chart
-chart_df = df[["Year", "Closing Corpus", real_col]].set_index("Year")
-st.line_chart(chart_df, color=["#1f77b4", "#ff7f0e"])
-st.caption("Blue = Nominal corpus  |  Orange = Inflation-adjusted corpus (today's purchasing power)")
+# Chart — closing corpus under 3 return scenarios
+_opt_label  = f"Optimistic ({optimistic_return:.0%})"
+_typ_label  = f"Typical ({typical_return:.0%})"
+_con_label  = f"Conservative ({conservative_return:.0%})"
+
+def _corpus_rows(simulation, label):
+    return [{"Year": r.year, "Series": label, "Value": r.closing_corpus}
+            for r in simulation.projection]
+
+_chart_long = pd.DataFrame(
+    _corpus_rows(sim_optimistic, _opt_label)
+    + _corpus_rows(sim, _typ_label)
+    + _corpus_rows(sim_conservative, _con_label)
+)
+_corpus_chart = (
+    alt.Chart(_chart_long)
+    .mark_line()
+    .encode(
+        x=alt.X("Year:Q", title="Year"),
+        y=alt.Y("Value:Q", title=f"Closing Corpus ({_symbol})"),
+        color=alt.Color(
+            "Series:N",
+            scale=alt.Scale(
+                domain=[_opt_label, _typ_label, _con_label],
+                range=["#2ca02c", "#1f77b4", "#d62728"],
+            ),
+            legend=alt.Legend(title="Return Scenario"),
+        ),
+        tooltip=[
+            alt.Tooltip("Year:Q"),
+            alt.Tooltip("Series:N", title="Scenario"),
+            alt.Tooltip("Value:Q", title=f"Corpus ({_symbol})", format=",.0f"),
+        ],
+    )
+)
+st.altair_chart(_corpus_chart, width="stretch")
+st.caption("All three curves start from your projected assets at retirement. Green = optimistic returns · Blue = typical · Red = conservative.")
 
 # Table
 with st.expander("Year-by-Year Table", expanded=False):
