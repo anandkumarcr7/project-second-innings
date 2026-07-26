@@ -186,13 +186,17 @@ fi, sim, sim_conservative, sim_optimistic, stress_results = _calculate(_scenario
 
 st.header("Financial Independence Status")
 
+target_label = selected_target.replace("_", " ").title()
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     if fi.fi_status == "FI Achieved":
         st.success(f"**{fi.fi_status}**")
+        st.caption(f"Projected assets meet or exceed the **{target_label}** corpus target (including safety margin).")
     else:
         st.warning(f"**{fi.fi_status}**")
+        st.caption(f"Projected assets are below the **{target_label}** corpus target (which includes a safety margin). "
+                   f"Check the Simulation section below to see whether your corpus still covers all expenses.")
 
 with col2:
     st.metric(
@@ -203,7 +207,6 @@ with col2:
     )
 
 with col3:
-    target_label = selected_target.replace("_", " ").title()
     st.metric(f"Target ({target_label})", _fmt(
         {"sleep_okay": fi.sleep_okay_corpus,
          "sleep_well": fi.sleep_well_corpus,
@@ -284,7 +287,12 @@ with st.expander("Active Assumptions", expanded=False):
 st.header("40-Year Retirement Projection")
 
 if sim.result == "PASS":
-    st.success(f"Simulation: **PASS** — corpus survives all {retirement_duration} years.")
+    st.success(f"Simulation: **PASS** — your projected retirement corpus covers all {retirement_duration} years of expenses at typical returns.")
+    st.caption(
+        f"This tests whether your projected assets at retirement ({_fmt(fi.projected_assets)}) "
+        f"fund actual expenses over {retirement_duration} years — independent of whether they meet the **{target_label}** "
+        f"target (which includes a safety margin for added confidence)."
+    )
 else:
     st.error(f"Simulation: **FAIL** — corpus exhausted in year **{sim.failure_year}** "
              f"(age {scenario.retirement_age + sim.failure_year - 1}).")
