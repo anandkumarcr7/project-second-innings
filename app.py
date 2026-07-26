@@ -91,23 +91,29 @@ with st.sidebar:
     )
 
     st.subheader("💰 Finances")
-    _step_small = 500 if currency == "USD" else 10_000
-    _step_medium = 1_000 if currency == "USD" else 100_000
-    _step_large = 10_000 if currency == "USD" else 1_000_000
+    _step_small  = 500       if currency == "USD" else 10_000
+    _step_medium = 1_000     if currency == "USD" else 100_000
+    _step_large  = 10_000    if currency == "USD" else 1_000_000
+    _def_expenses = 4_500    if currency == "USD" else 200_000
+    _def_assets   = 1_200_000 if currency == "USD" else 100_000_000
     monthly_expenses = st.number_input(
-        f"Monthly Expenses ({_symbol})", min_value=0, value=200_000, step=_step_small,
-        help="Current retirement monthly spend in today's money"
+        f"Monthly Expenses ({_symbol})", min_value=0, value=_def_expenses, step=_step_small,
+        help="Current retirement monthly spend in today's money",
+        key=f"monthly_expenses_{currency}",
     )
     current_assets = st.number_input(
-        f"Current Investable Assets ({_symbol})", min_value=0, value=100_000_000, step=_step_large
+        f"Current Investable Assets ({_symbol})", min_value=0, value=_def_assets, step=_step_large,
+        key=f"current_assets_{currency}",
     )
     average_annual_savings = st.number_input(
         f"Average Annual Savings ({_symbol})", min_value=0, value=0, step=_step_medium,
-        help="Expected savings added each year between now and retirement"
+        help="Expected savings added each year between now and retirement",
+        key=f"avg_savings_{currency}",
     )
     passive_income = st.number_input(
         f"Annual Passive Income ({_symbol})", min_value=0, value=0, step=_step_medium,
-        help="Rental / dividend income received after retirement"
+        help="Rental / dividend income received after retirement",
+        key=f"passive_income_{currency}",
     )
 
     st.subheader("📈 Return Assumptions")
