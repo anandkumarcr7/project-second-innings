@@ -96,6 +96,16 @@ Supported currencies in the initial release:
 | INR | ₹ | Cr (crore = 10 million) | L (lakh = 100 thousand) |
 | USD | $ | Mn (million) | K (thousand) |
 
+When the user switches currency, all financial input fields shall reset to
+currency-appropriate default values:
+
+| Field | INR Default | USD Default |
+|---|---|---|
+| Monthly Expenses | ₹2,00,000 | $4,500 |
+| Current Investable Assets | ₹10,00,00,000 | $1,200,000 |
+| Average Annual Savings | 0 | 0 |
+| Annual Passive Income | 0 | 0 |
+
 ### FR-009 — Tax Rate
 
 The system shall allow the user to enter a simplified effective tax rate on investment returns.
@@ -140,6 +150,14 @@ The system shall calculate and display:
 ### FR-017 — FI Status
 
 The system shall display whether the user has achieved FI under the selected target definition.
+
+The FI status display shall include a contextual caption clarifying that the status reflects
+whether projected assets meet the selected target corpus (which includes a safety margin),
+not whether the projected corpus can survive the full retirement duration.
+
+The retirement simulation PASS/FAIL result shall include a contextual caption clarifying
+that it tests actual expense coverage from the projected corpus, independently of whether
+the projected corpus meets the selected FI target.
 
 ---
 

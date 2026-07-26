@@ -21,7 +21,7 @@ It should make assumptions visible, risk very visible!, support stress testing, 
 
 # 2. Problem Statement
 
-We need a tool that needed to work for us based on the margin of safety that would let us sleep well at night. Traditional tools either used complicated rules or didn't have stress test options. We wanted to build a tool that makes assumptions and risk visible to us. 
+We need a tool that needed to work for us based on the margin of safety that would let us sleep well at night. Traditional tools either used complicated rules(like 4% rule, 25x rule) or didn't have stress test options. We wanted to build a tool that makes assumptions and risk visible to us. 
 
 ---
 
