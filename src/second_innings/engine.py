@@ -107,8 +107,9 @@ def simulate(
             year=year,
             age=age,
             opening_corpus=opening,
-            investment_growth=net_growth,
+            gross_investment_growth=gross_growth,
             taxes=tax,
+            investment_growth=net_growth,
             expenses=inflated_expense,
             passive_income=passive_income,
             net_withdrawal=net_withdrawal,
@@ -196,13 +197,11 @@ def calculate_fi_targets(
     selected_target: str = "sleep_well",
 ) -> FITargetResult:
     """
-    Calculate Sleep Okay, Sleep Well, and Sleep Best corpus targets.
+    Calculate Sleep Okay, Sleep Well, and Sleep Best corpus / nest egg targets.
 
     Sleep Okay  = minimum corpus under the *typical* return assumption.
-    Sleep Well  = minimum corpus under the *conservative* return
-                  × (1 + sleep_well_margin).
-    Sleep Best  = minimum corpus under the *conservative* return
-                  × (1 + sleep_best_margin).
+    Sleep Well  = minimum corpus under the *conservative* return assumption.
+    Sleep Best  = minimum corpus under the *risk-free* return assumption.
 
     Parameters
     ----------
@@ -213,10 +212,8 @@ def calculate_fi_targets(
         raise ValueError(f"Invalid selected_target: {selected_target!r}")
 
     sleep_okay = solve_minimum_corpus(scenario, scenario.typical_return)
-    conservative_base = solve_minimum_corpus(scenario, scenario.conservative_return)
-
-    sleep_well = conservative_base * (1.0 + scenario.sleep_well_margin)
-    sleep_best = conservative_base * (1.0 + scenario.sleep_best_margin)
+    sleep_well = solve_minimum_corpus(scenario, scenario.conservative_return)
+    sleep_best = solve_minimum_corpus(scenario, scenario.risk_free_return)
 
     target_corpus = {"sleep_okay": sleep_okay,
                      "sleep_well": sleep_well,

@@ -125,18 +125,29 @@ minimum_corpus = high
 
 # 6. FI Targets
 ## 6.1 Sleep Okay
-Minimum corpus required under the typical return assumption.
-Sleep Okay
-    = Minimum Corpus using Typical Return
+Minimum corpus / nest egg required under the typical return assumption.
+```
+Sleep Okay = Minimum Corpus using Typical Return
+```
 
 ## 6.2 Sleep Well
-Sleep Well
-    = Stress-Test Corpus × (1 + Sleep Well Margin)
+Minimum corpus / nest egg required under the conservative return assumption.
+```
+Sleep Well = Minimum Corpus using Conservative Return
+```
 
 ## 6.3 Sleep Best
-Sleep Best
-    = Minimum Corpus using risk-free Return
-      × (1 + Sleep Best Margin)
+Minimum corpus / nest egg required under the risk-free (FD / bond) return assumption.
+This is the most conservative target — it assumes the entire portfolio earns only
+a risk-free rate such as a fixed-deposit or government-bond yield.
+```
+Sleep Best = Minimum Corpus using Risk-Free Return
+```
+
+All three rates are user-configurable. The three targets answer three distinct questions:
+- **Sleep Okay:** "How much do I need if markets return as expected?"
+- **Sleep Well:** "How much do I need if markets underperform?"
+- **Sleep Best:** "How much do I need if I put everything in FDs/bonds?"
 
 # 7. Financial Independence Status
 

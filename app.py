@@ -84,8 +84,11 @@ with st.sidebar:
     _symbol = "₹" if currency == "INR" else "$"
 
     st.subheader("👤 Personal")
-    current_age = st.number_input("Current Age", min_value=18, max_value=80, value=35, step=1)
-    retirement_age = st.number_input("Retirement Age", min_value=18, max_value=90, value=45, step=1)
+    _col_age, _col_ret = st.columns(2)
+    with _col_age:
+        current_age = st.number_input("Current Age", min_value=18, max_value=80, value=35, step=1)
+    with _col_ret:
+        retirement_age = st.number_input("Retirement Age", min_value=18, max_value=90, value=45, step=1)
     retirement_duration = st.number_input(
         "Retirement Duration (years)", min_value=1, max_value=60, value=40, step=1
     )
@@ -105,43 +108,43 @@ with st.sidebar:
         f"Current Investable Assets ({_symbol})", min_value=0, value=_def_assets, step=_step_large,
         key=f"current_assets_{currency}",
     )
-    average_annual_savings = st.number_input(
-        f"Average Annual Savings ({_symbol})", min_value=0, value=0, step=_step_medium,
-        help="Expected savings added each year between now and retirement",
-        key=f"avg_savings_{currency}",
-    )
-    passive_income = st.number_input(
-        f"Annual Passive Income ({_symbol})", min_value=0, value=0, step=_step_medium,
-        help="Rental / dividend income received after retirement",
-        key=f"passive_income_{currency}",
-    )
+    _col_sav, _col_pi = st.columns(2)
+    with _col_sav:
+        average_annual_savings = st.number_input(
+            f"Annual Savings ({_symbol})", min_value=0, value=0, step=_step_medium,
+            help="Expected savings added each year between now and retirement",
+            key=f"avg_savings_{currency}",
+        )
+    with _col_pi:
+        passive_income = st.number_input(
+            f"Passive Income ({_symbol})", min_value=0, value=0, step=_step_medium,
+            help="Rental / dividend income received after retirement",
+            key=f"passive_income_{currency}",
+        )
 
-    st.subheader("📈 Return Assumptions")
-    conservative_return = st.slider("Conservative Return (%)", 1.0, 15.0, 7.0, 0.5) / 100
-    typical_return = st.slider("Typical Return (%)", 1.0, 20.0, 9.0, 0.5) / 100
-    optimistic_return = st.slider("Optimistic Return (%)", 1.0, 25.0, 11.0, 0.5) / 100
+    with st.expander("📈 Return Assumptions", expanded=False):
+        risk_free_return    = st.slider("Risk-Free Return / FD Rate (%)", 1.0, 10.0, 4.0, 0.5) / 100
+        conservative_return = st.slider("Conservative Return (%)", 1.0, 15.0, 7.0, 0.5) / 100
+        typical_return      = st.slider("Typical Return (%)",      1.0, 20.0, 9.0, 0.5) / 100
+        optimistic_return   = st.slider("Optimistic Return (%)",   1.0, 25.0, 11.0, 0.5) / 100
 
-    st.subheader("📊 Macro Assumptions")
-    inflation_rate = st.slider("Inflation Rate (%)", 1.0, 15.0, 7.0, 0.5) / 100
-    tax_rate = st.slider("Effective Tax Rate on Returns (%)", 0.0, 30.0, 10.0, 0.5) / 100
+    with st.expander("📊 Macro & Tax", expanded=False):
+        inflation_rate = st.slider("Inflation Rate (%)", 1.0, 15.0, 7.0, 0.5) / 100
+        tax_rate = st.slider("Effective Tax Rate on Returns (%)", 0.0, 30.0, 10.0, 0.5) / 100
 
-    st.subheader("🛡️ Design Margins")
-    sleep_well_margin = st.slider("Sleep Well Margin (%)", 0.0, 50.0, 10.0, 5.0) / 100
-    sleep_best_margin = st.slider("Sleep Best Margin (%)", 0.0, 100.0, 25.0, 5.0) / 100
-
-    st.subheader("🎯 FI Target")
-    selected_target = st.selectbox(
-        "Evaluate against",
-        ["sleep_okay", "sleep_well", "sleep_best"],
-        index=1,
-        format_func=lambda x: {"sleep_okay": "Sleep Okay", "sleep_well": "Sleep Well",
-                                "sleep_best": "Sleep Best"}[x],
-    )
+    with st.expander("🎯 FI Target", expanded=False):
+        selected_target = st.selectbox(
+            "Evaluate against",
+            ["sleep_okay", "sleep_well", "sleep_best"],
+            index=1,
+            format_func=lambda x: {"sleep_okay": "Sleep Okay", "sleep_well": "Sleep Well",
+                                    "sleep_best": "Sleep Best"}[x],
+        )
 
 # ── Bind currency-aware formatter ────────────────────────────────────────────
 _fmt_base = _fmt
 _fmt = lambda v: _fmt_base(v, currency)          # noqa: E731
-real_col = f"Real Corpus (Today {_symbol})"
+real_col = f"Real Corpus / Nest Egg (Today {_symbol})"
 
 # ── Build scenario (validate inputs) ─────────────────────────────────────────
 
@@ -159,8 +162,7 @@ try:
         typical_return=typical_return,
         optimistic_return=optimistic_return,
         effective_tax_rate=tax_rate,
-        sleep_well_margin=sleep_well_margin,
-        sleep_best_margin=sleep_best_margin,
+        risk_free_return=risk_free_return,
         average_annual_savings=float(average_annual_savings),
         currency=currency,
     )
@@ -198,11 +200,11 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     if fi.fi_status == "FI Achieved":
         st.success(f"**{fi.fi_status}**")
-        st.caption(f"Projected assets meet or exceed the **{target_label}** corpus target (including safety margin).")
+        st.caption(f"Projected assets meet or exceed the **{target_label}** corpus / nest egg target.")
     else:
         st.warning(f"**{fi.fi_status}**")
-        st.caption(f"Projected assets are below the **{target_label}** corpus target (which includes a safety margin). "
-                   f"Check the Simulation section below to see whether your corpus still covers all expenses.")
+        st.caption(f"Projected assets are below the **{target_label}** corpus / nest egg target. "
+                   f"Check the Simulation section below to see whether your corpus / nest egg still covers all expenses.")
 
 with col2:
     st.metric(
@@ -233,7 +235,7 @@ st.progress(min(fi.percent_complete / 100, 1.0),
 
 # ── Section 2: Corpus Targets ─────────────────────────────────────────────────
 
-st.header("Corpus Targets")
+st.header("Corpus / Nest Egg Targets")
 
 t1, t2, t3 = st.columns(3)
 
@@ -244,7 +246,7 @@ with t1:
         _fmt(fi.sleep_okay_corpus),
         delta=f"{_fmt(abs(delta_okay))} {'surplus' if delta_okay >= 0 else 'needed'}",
         delta_color="normal" if delta_okay >= 0 else "inverse",
-        help="Minimum corpus under the typical return assumption.",
+        help=f"Minimum corpus / nest egg assuming typical market returns ({typical_return:.0%}).",
     )
 
 with t2:
@@ -254,7 +256,7 @@ with t2:
         _fmt(fi.sleep_well_corpus),
         delta=f"{_fmt(abs(delta_well))} {'surplus' if delta_well >= 0 else 'needed'}",
         delta_color="normal" if delta_well >= 0 else "inverse",
-        help=f"Conservative corpus + {sleep_well_margin*100:.0f}% design margin.",
+        help=f"Minimum corpus / nest egg assuming conservative returns ({conservative_return:.0%}).",
     )
 
 with t3:
@@ -264,7 +266,7 @@ with t3:
         _fmt(fi.sleep_best_corpus),
         delta=f"{_fmt(abs(delta_best))} {'surplus' if delta_best >= 0 else 'needed'}",
         delta_color="normal" if delta_best >= 0 else "inverse",
-        help=f"Conservative corpus + {sleep_best_margin*100:.0f}% design margin.",
+        help=f"Minimum corpus / nest egg assuming risk-free / FD returns ({risk_free_return:.0%}).",
     )
 
 # ── Assumption summary ────────────────────────────────────────────────────────
@@ -285,41 +287,40 @@ with st.expander("Active Assumptions", expanded=False):
     with c3:
         st.markdown(f"**Tax Rate:** {_pct(tax_rate * 100)}")
         st.markdown(f"**Retirement Duration:** {retirement_duration} years")
-        st.markdown(f"**Sleep Well Margin:** {_pct(sleep_well_margin * 100)}")
-        st.markdown(f"**Sleep Best Margin:** {_pct(sleep_best_margin * 100)}")
+        st.markdown(f"**Risk-Free / FD Return:** {_pct(risk_free_return * 100)}")
 
 # ── Section 3: 40-Year Projection ─────────────────────────────────────────────
 
 st.header("40-Year Retirement Projection")
 
 if sim.result == "PASS":
-    st.success(f"Simulation: **PASS** — your projected retirement corpus covers all {retirement_duration} years of expenses at typical returns.")
+    st.success(f"Simulation: **PASS** — your projected retirement corpus / nest egg covers all {retirement_duration} years of expenses at typical returns.")
     st.caption(
         f"This tests whether your projected assets at retirement ({_fmt(fi.projected_assets)}) "
         f"fund actual expenses over {retirement_duration} years — independent of whether they meet the **{target_label}** "
         f"target (which includes a safety margin for added confidence)."
     )
 else:
-    st.error(f"Simulation: **FAIL** — corpus exhausted in year **{sim.failure_year}** "
+    st.error(f"Simulation: **FAIL** — corpus / nest egg exhausted in year **{sim.failure_year}** "
              f"(age {scenario.retirement_age + sim.failure_year - 1}).")
 
-# Build DataFrame
-rows = []
-for r in sim.projection:
-    rows.append({
-        "Year": r.year,
-        "Age": r.age,
-        "Opening Corpus": r.opening_corpus,
-        "Investment Growth": r.investment_growth,
-        "Taxes": r.taxes,
-        "Expenses": r.expenses,
-        "Passive Income": r.passive_income,
-        "Net Withdrawal": r.net_withdrawal,
-        "Closing Corpus": r.closing_corpus,
-        real_col: r.real_closing_corpus,
-        "Status": r.status,
-    })
-df = pd.DataFrame(rows)
+def _build_df(simulation):
+    rows = []
+    for r in simulation.projection:
+        rows.append({
+            "Year": r.year,
+            "Age": r.age,
+            "Opening Corpus / Nest Egg": r.opening_corpus,
+            "Gross Investment Growth": r.gross_investment_growth,
+            "Taxes": r.taxes,
+            "Net Investment Growth": r.investment_growth,
+            "Expenses": r.expenses,
+            "Passive Income": r.passive_income,
+            "Net Withdrawal": r.net_withdrawal,
+            "Closing Corpus / Nest Egg": r.closing_corpus,
+            "Status": r.status,
+        })
+    return pd.DataFrame(rows)
 
 # Chart — closing corpus under 3 return scenarios
 _opt_label  = f"Optimistic ({optimistic_return:.0%})"
@@ -340,7 +341,7 @@ _corpus_chart = (
     .mark_line()
     .encode(
         x=alt.X("Year:Q", title="Year"),
-        y=alt.Y("Value:Q", title=f"Closing Corpus ({_symbol})"),
+        y=alt.Y("Value:Q", title=f"Closing Corpus / Nest Egg ({_symbol})"),
         color=alt.Color(
             "Series:N",
             scale=alt.Scale(
@@ -352,22 +353,40 @@ _corpus_chart = (
         tooltip=[
             alt.Tooltip("Year:Q"),
             alt.Tooltip("Series:N", title="Scenario"),
-            alt.Tooltip("Value:Q", title=f"Corpus ({_symbol})", format=",.0f"),
+            alt.Tooltip("Value:Q", title=f"Corpus / Nest Egg ({_symbol})", format=",.0f"),
         ],
     )
 )
 st.altair_chart(_corpus_chart, width="stretch")
-st.caption("All three curves start from your projected assets at retirement. Green = optimistic returns · Blue = typical · Red = conservative.")
+st.caption(
+    "Green = optimistic · Blue = typical · Red = conservative. "
+    "**Lines crossing below zero?** Higher returns compound the deficit faster once the corpus / nest egg "
+    "goes negative — a modelling artefact. In practice, funds are exhausted at the year when the corpus / nest egg hits zero."
+)
 
 # Table
 with st.expander("Year-by-Year Table", expanded=False):
+    _table_scenario = st.radio(
+        "Return scenario",
+        [_opt_label, _typ_label, _con_label],
+        index=1,
+        horizontal=True,
+    )
+    _sim_map = {_opt_label: sim_optimistic, _typ_label: sim, _con_label: sim_conservative}
+    _selected_sim = _sim_map[_table_scenario]
+    df = _build_df(_selected_sim)
+
     display_df = df.copy()
-    for col in ["Opening Corpus", "Investment Growth", "Taxes", "Expenses",
-                "Passive Income", "Net Withdrawal", "Closing Corpus", real_col]:
+    for col in ["Opening Corpus / Nest Egg", "Gross Investment Growth", "Taxes",
+                "Net Investment Growth", "Expenses",
+                "Passive Income", "Net Withdrawal", "Closing Corpus / Nest Egg"]:
         display_df[col] = display_df[col].apply(_fmt)
 
     def _highlight_fail(row):
-        return ["background-color: #ffe0e0" if row["Status"] == "FAIL" else "" for _ in row]
+        return ["background-color: #ffe0e0" if row.name in fail_years else "" for _ in row]
+
+    fail_years = {i for i, r in enumerate(_selected_sim.projection) if r.status == "FAIL"}
+    display_df = display_df.drop(columns=["Status"])
 
     st.dataframe(display_df.style.apply(_highlight_fail, axis=1), width="stretch")
 
@@ -376,7 +395,7 @@ with st.expander("Year-by-Year Table", expanded=False):
     st.download_button(
         label="Download CSV",
         data=csv_bytes,
-        file_name=f"{scenario_name}_projection.csv",
+        file_name=f"{scenario_name}_{_table_scenario}_projection.csv",
         mime="text/csv",
     )
 
@@ -400,7 +419,7 @@ for r in stress_results:
         "Test": r.test_name,
         "Result": r.result,
         "Failure Year": r.failure_year,  # None renders as empty cell; keeps column integer-typed
-        "Ending Corpus": _fmt(r.ending_corpus),
+        "Ending Corpus / Nest Egg": _fmt(r.ending_corpus),
         "Severity": r.severity,
         "Changes": ", ".join(f"{k}={v}" for k, v in r.assumptions_changed.items()),
     })

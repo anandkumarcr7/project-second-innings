@@ -3,6 +3,45 @@
 
 ---
 
+## Release 0.6 — 2026-08-09
+
+### UX Improvements
+
+#### Year-by-Year Table Restructured
+
+- **Investment growth split** into three columns: *Gross Investment Growth* (before tax),
+  *Taxes*, and *Net Investment Growth* (after tax), making the tax impact explicit.
+- **Real Corpus / Nest Egg column removed** — the column showed closing corpus deflated
+  to today’s purchasing power; users found it redundant alongside the nominal figure.
+- **Status column removed** — FAIL rows are already highlighted in red; the text column
+  was redundant.
+- **Scenario selector added** — a radio button (Conservative / Typical / Optimistic)
+  above the table lets users switch which return scenario the table reflects.
+  The CSV download filename includes the selected scenario.
+
+#### Sidebar Layout Compacted
+
+- Current Age and Retirement Age placed side-by-side in two columns.
+- Annual Savings and Passive Income placed side-by-side.
+- Return Assumptions, Macro & Tax, and FI Target moved into collapsed expanders,
+  reducing the initial sidebar height and eliminating the need to scroll for
+  most common use cases.
+
+#### Terminology: “Corpus / Nest Egg”
+
+All user-facing labels now read “Corpus / Nest Egg” so the term is accessible
+to both Indian users (who know “corpus”) and Western users (who recognise
+“nest egg”).
+
+#### Chart Annotation for Negative Corpus Crossings
+
+A caption below the 40-year projection chart explains why higher-return curves
+can become more negative than lower-return curves once the corpus is exhausted:
+higher rates compound the deficit faster, which is a modelling artefact rather
+than a real-world scenario.
+
+---
+
 ## Release 0.5 — 2026-08-09
 
 ### Bug Fix
@@ -43,6 +82,28 @@ Projected Assets
 **Impact:** Projected assets, funding gap, percent-complete, and FI status
 now reflect realistic compound growth. Section 7.1 of the Detailed Design
 has been updated to match.
+
+#### Sleep Well / Sleep Best Redesigned — Return-Rate Based Targets
+
+**Problem:** Sleep Well and Sleep Best shared the same conservative-return base corpus
+and only differed by arbitrary percentage margins (10% and 25%), which had no clear
+financial meaning and were confusing to users.
+
+**Fix:** Each tier now uses a distinct, user-controlled return-rate assumption:
+
+| Target | Return assumption | Meaning |
+|---|---|---|
+| Sleep Okay | Typical return | Markets perform as expected |
+| Sleep Well | Conservative return | Markets underperform |
+| Sleep Best | Risk-free / FD return | Everything in bonds / FDs |
+
+`RetirementScenario` gains a `risk_free_return` field (default 4%) and loses
+`sleep_well_margin` and `sleep_best_margin`. The sidebar exposes a
+"Risk-Free Return / FD Rate" slider in the Return Assumptions section.
+
+**Impact:** Sleep Best corpus values will generally be larger and more conservative
+than before (a 4% FD assumption requires more corpus than conservative-return + 25%).
+Section 6 of the Detailed Design has been updated.
 
 ---
 

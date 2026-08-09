@@ -359,8 +359,7 @@ class TestTC014TargetOrdering:
             inflation_rate=0.07,
             monthly_expenses=150_000,
             retirement_duration_years=40,
-            sleep_well_margin=0.10,
-            sleep_best_margin=0.25,
+            risk_free_return=0.04,
         )
         fi = calculate_fi_targets(scenario)
         assert fi.sleep_okay_corpus <= fi.sleep_well_corpus + 1.0

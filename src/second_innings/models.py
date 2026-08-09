@@ -33,8 +33,7 @@ class RetirementScenario:
     effective_tax_rate: float        # simplified tax on investment returns, e.g. 0.10
     currency: str = "INR"
     model_version: str = MODEL_VERSION
-    sleep_well_margin: float = 0.10  # design margin for Sleep Well target
-    sleep_best_margin: float = 0.25  # design margin for Sleep Best target
+    risk_free_return: float = 0.04   # e.g. FD / bond rate used for Sleep Best target
     average_annual_savings: float = 0.0  # expected savings per year until retirement
 
     def __post_init__(self) -> None:
@@ -44,10 +43,8 @@ class RetirementScenario:
             raise ValueError("retirement_duration_years must be greater than zero.")
         if not (0.0 <= self.effective_tax_rate <= 1.0):
             raise ValueError("effective_tax_rate must be between 0 and 1 (inclusive).")
-        if self.sleep_well_margin < 0 or self.sleep_best_margin < 0:
-            raise ValueError("Design margins must be non-negative.")
-        if self.sleep_best_margin < self.sleep_well_margin:
-            raise ValueError("sleep_best_margin must be >= sleep_well_margin.")
+        if not (0.0 <= self.risk_free_return <= 1.0):
+            raise ValueError("risk_free_return must be between 0 and 1 (inclusive).")
         if self.average_annual_savings < 0:
             raise ValueError("average_annual_savings must be non-negative.")
 
@@ -59,8 +56,9 @@ class AnnualProjectionRecord:
     year: int
     age: int
     opening_corpus: float
-    investment_growth: float   # net of tax
+    gross_investment_growth: float  # before tax
     taxes: float
+    investment_growth: float        # net of tax (gross - taxes)
     expenses: float            # inflation-adjusted annual expenses
     passive_income: float
     net_withdrawal: float      # max(expenses - passive_income, 0)
