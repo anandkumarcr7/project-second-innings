@@ -201,7 +201,11 @@ class TestTC005PassiveIncomeExceedsExpenses:
 
 class TestTC006ExpenseInflation:
     def test_expenses_compound_correctly(self):
+        # current_age == retirement_age so there is no pre-retirement period;
+        # this isolates in-retirement inflation compounding cleanly.
         scenario = _make_scenario(
+            current_age=40,
+            retirement_age=40,
             inflation_rate=0.10,
             monthly_expenses=100_000,  # base annual = ₹12 lakh
             retirement_duration_years=5,
@@ -565,7 +569,8 @@ class TestTC027InvalidScenarioFile:
 
 class TestUC010ProjectedAssets:
     def test_zero_savings_projected_equals_current(self):
-        scenario = _make_scenario(average_annual_savings=0)
+        # current_age == retirement_age → no pre-retirement period; projected = current_assets.
+        scenario = _make_scenario(current_age=40, retirement_age=40, average_annual_savings=0)
         fi = calculate_fi_targets(scenario)
         assert math.isclose(fi.projected_assets, scenario.current_assets, abs_tol=1.0)
 
@@ -576,9 +581,12 @@ class TestUC010ProjectedAssets:
             average_annual_savings=1_000_000,  # ₹10 lakh / year
             current_assets=10_000_000,
         )
-        expected = 10_000_000 + (45 - 38) * 1_000_000  # = 17_000_000
+        n = 45 - 38
+        r = scenario.typical_return  # 0.09 default
+        gf = (1 + r) ** n
+        expected = 10_000_000 * gf + 1_000_000 * (gf - 1) / r
         fi = calculate_fi_targets(scenario)
-        assert math.isclose(fi.projected_assets, expected, abs_tol=1.0)
+        assert math.isclose(fi.projected_assets, expected, rel_tol=1e-6)
 
     def test_fi_status_uses_projected_assets(self):
         """Savings should be able to push status from Not Yet FI to FI Achieved."""
@@ -608,8 +616,11 @@ class TestUC010ProjectedAssets:
             monthly_expenses=100_000,
             retirement_duration_years=10,
         )
+        n = 45 - 38
+        r = scenario.typical_return  # 0.09 default
+        gf = (1 + r) ** n
+        expected_projected = 10_000_000 * gf + 1_000_000 * (gf - 1) / r
         fi = calculate_fi_targets(scenario, selected_target="sleep_okay")
-        expected_projected = 10_000_000 + 7 * 1_000_000
         assert math.isclose(fi.funding_gap, fi.sleep_okay_corpus - expected_projected, abs_tol=2.0)
 
     def test_negative_savings_raises(self):

@@ -39,15 +39,24 @@ For every retirement year:
 
 ## 3.1 Annual Expense
 
-The user enters current monthly expenses.
+The user enters **current** (today's) monthly expenses.  Before the retirement
+simulation begins, these are inflated forward to the retirement date to obtain
+the base expense in retirement-year-1 dollars.
 
 ```text
-Base Annual Expense = Monthly Expense × 12
+Years to Retirement = Retirement Age − Current Age
+
+Base Annual Expense
+    = Monthly Expense × 12 × (1 + Inflation Rate)^(Years to Retirement)
 
 Annual Expense(n)
-    = Base Annual Expense × (1 + Inflation Rate)^(n - 1)
+    = Base Annual Expense × (1 + Inflation Rate)^(n − 1)
 
 ```
+
+Where *n* = 1 is the first year of retirement.  Year 1 therefore uses the
+full pre-retirement inflation adjustment; subsequent years compound on top of
+that.
 
 ## 3.2 Investment Growth
 Gross Growth(n)
@@ -138,14 +147,27 @@ future savings accumulated between now and the planned retirement age.
 
 ```text
 Years to Retirement
-    = Retirement Age - Current Age
+    = Retirement Age − Current Age
 
+Growth Factor
+    = (1 + Typical Return)^(Years to Retirement)
+
+Projected Assets
+    = Current Assets × Growth Factor
+      + Average Annual Savings × (Growth Factor − 1) / Typical Return
+```
+
+Savings are assumed to be deposited at the end of each pre-retirement year
+and then compound at the typical return rate for the remaining years.
+When Typical Return = 0, the formula reduces to:
+
+```text
 Projected Assets
     = Current Assets + Years to Retirement × Average Annual Savings
 ```
 
-When Average Annual Savings = 0, Projected Assets = Current Assets and all
-existing FI calculations are unchanged.
+When Average Annual Savings = 0, Projected Assets = Current Assets compounded
+at the typical return over the pre-retirement period.
 
 ## 7.2 Funding Gap and FI Status
 

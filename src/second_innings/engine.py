@@ -61,7 +61,11 @@ def simulate(
     projection: List[AnnualProjectionRecord] = []
     corpus = opening_corpus
     failure_year: Optional[int] = None
-    base_annual_expense = scenario.monthly_expenses * 12
+    years_to_retirement = scenario.retirement_age - scenario.current_age
+    base_annual_expense = (
+        scenario.monthly_expenses * 12
+        * (1 + scenario.inflation_rate) ** years_to_retirement
+    )
     duration = scenario.retirement_duration_years
 
     for year in range(1, duration + 1):
@@ -160,7 +164,11 @@ def solve_minimum_corpus(
             expense_multiplier_sequence=expense_multiplier_sequence,
         ).result
 
-    base_annual = scenario.monthly_expenses * 12
+    years_to_retirement = scenario.retirement_age - scenario.current_age
+    base_annual = (
+        scenario.monthly_expenses * 12
+        * (1 + scenario.inflation_rate) ** years_to_retirement
+    )
     lower = 0.0
     upper = base_annual * scenario.retirement_duration_years
 
@@ -215,8 +223,21 @@ def calculate_fi_targets(
                      "sleep_best": sleep_best}[selected_target]
 
     years_to_retirement = max(scenario.retirement_age - scenario.current_age, 0)
-    projected_assets = (scenario.current_assets
-                        + years_to_retirement * scenario.average_annual_savings)
+    r = scenario.typical_return
+    if r == 0.0:
+        # Avoid division by zero; linear accumulation is exact when return = 0.
+        projected_assets = (
+            scenario.current_assets
+            + years_to_retirement * scenario.average_annual_savings
+        )
+    else:
+        # Current assets compound at the typical return rate; annual savings are
+        # added at the end of each pre-retirement year and also compound.
+        growth_factor = (1 + r) ** years_to_retirement
+        projected_assets = (
+            scenario.current_assets * growth_factor
+            + scenario.average_annual_savings * (growth_factor - 1) / r
+        )
 
     funding_gap = target_corpus - projected_assets
     percent_complete = (projected_assets / target_corpus * 100.0

@@ -89,7 +89,7 @@ class FITargetResult:
     sleep_well_corpus: float
     sleep_best_corpus: float
     current_assets: float
-    projected_assets: float    # current_assets + years_to_retirement × average_annual_savings
+    projected_assets: float    # current_assets compounded at typical_return + annual_savings compounded over years_to_retirement
     selected_target: str       # "sleep_okay" | "sleep_well" | "sleep_best"
     funding_gap: float         # target - projected_assets  (negative = surplus)
     percent_complete: float    # projected_assets / target × 100
