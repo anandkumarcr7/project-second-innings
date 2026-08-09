@@ -192,12 +192,13 @@ def _calculate(scenario_json: str, target: str):
     sim_typical = simulate(sc, fi.projected_assets, sc.typical_return)
     sim_conservative = simulate(sc, fi.projected_assets, sc.conservative_return)
     sim_optimistic = simulate(sc, fi.projected_assets, sc.optimistic_return)
+    sim_risk_free = simulate(sc, fi.projected_assets, sc.risk_free_return)
     stress = run_stress_tests(sc, opening_corpus=fi.projected_assets)
-    return fi, sim_typical, sim_conservative, sim_optimistic, stress
+    return fi, sim_typical, sim_conservative, sim_optimistic, sim_risk_free, stress
 
 import dataclasses as _dc
 _scenario_json = json.dumps(_dc.asdict(scenario))
-fi, sim, sim_conservative, sim_optimistic, stress_results = _calculate(_scenario_json, selected_target)
+fi, sim, sim_conservative, sim_optimistic, sim_risk_free, stress_results = _calculate(_scenario_json, selected_target)
 
 # ── Section 1: FI Status ──────────────────────────────────────────────────────
 
@@ -331,10 +332,11 @@ def _build_df(simulation):
         })
     return pd.DataFrame(rows)
 
-# Chart — closing corpus under 3 return scenarios
+# Chart — closing corpus under 4 return scenarios
 _opt_label  = f"Optimistic ({optimistic_return:.0%})"
 _typ_label  = f"Typical ({typical_return:.0%})"
 _con_label  = f"Conservative ({conservative_return:.0%})"
+_rf_label   = f"Risk-Free ({risk_free_return:.0%})"
 
 def _corpus_rows(simulation, label):
     return [{"Year": r.year, "Series": label, "Value": r.closing_corpus}
@@ -344,6 +346,7 @@ _chart_long = pd.DataFrame(
     _corpus_rows(sim_optimistic, _opt_label)
     + _corpus_rows(sim, _typ_label)
     + _corpus_rows(sim_conservative, _con_label)
+    + _corpus_rows(sim_risk_free, _rf_label)
 )
 _corpus_chart = (
     alt.Chart(_chart_long)
@@ -354,8 +357,8 @@ _corpus_chart = (
         color=alt.Color(
             "Series:N",
             scale=alt.Scale(
-                domain=[_opt_label, _typ_label, _con_label],
-                range=["#2ca02c", "#1f77b4", "#d62728"],
+                domain=[_opt_label, _typ_label, _con_label, _rf_label],
+                range=["#2ca02c", "#1f77b4", "#d62728", "#9467bd"],
             ),
             legend=alt.Legend(title="Return Scenario"),
         ),
@@ -368,20 +371,22 @@ _corpus_chart = (
 )
 st.altair_chart(_corpus_chart, width="stretch")
 st.caption(
-    "Green = optimistic · Blue = typical · Red = conservative. "
+    "Green = optimistic · Blue = typical · Red = conservative · Purple = risk-free. "
     "**Lines crossing below zero?** Higher returns compound the deficit faster once the corpus / nest egg "
     "goes negative — a modelling artefact. In practice, funds are exhausted at the year when the corpus / nest egg hits zero."
 )
 
 # Table
 with st.expander("Year-by-Year Table", expanded=False):
+    _rf_label = f"Risk-Free ({risk_free_return:.0%})"
     _table_scenario = st.radio(
         "Return scenario",
-        [_opt_label, _typ_label, _con_label],
+        [_opt_label, _typ_label, _con_label, _rf_label],
         index=1,
         horizontal=True,
     )
-    _sim_map = {_opt_label: sim_optimistic, _typ_label: sim, _con_label: sim_conservative}
+    _sim_map = {_opt_label: sim_optimistic, _typ_label: sim,
+                _con_label: sim_conservative, _rf_label: sim_risk_free}
     _selected_sim = _sim_map[_table_scenario]
     df = _build_df(_selected_sim)
 
