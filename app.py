@@ -71,6 +71,15 @@ st.set_page_config(
     layout="wide",
 )
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] { min-width: 340px; max-width: 340px; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("🏏 Project Second Innings")
 st.caption("Financial Independence Planning — private, local, deterministic")
 
