@@ -138,8 +138,18 @@ with st.sidebar:
         optimistic_return   = st.slider("Optimistic Return (%)",   1.0, 25.0, 11.0, 0.5) / 100
 
     with st.expander("📊 Macro & Tax", expanded=False):
-        inflation_rate = st.slider("Inflation Rate (%)", 1.0, 15.0, 7.0, 0.5) / 100
-        tax_rate = st.slider("Effective Tax Rate on Returns (%)", 0.0, 30.0, 10.0, 0.5) / 100
+        _def_inflation = 7.0 if currency == "INR" else 3.0
+        _def_tax       = 12.5 if currency == "INR" else 15.0
+        inflation_rate = st.slider("Inflation Rate (%)", 1.0, 15.0, _def_inflation, 0.5,
+                                   key=f"inflation_{currency}") / 100
+        tax_rate = st.slider("Effective Tax Rate on Returns (%)", 0.0, 30.0, _def_tax, 0.5,
+                             help=(
+                                 "Applied to the full annual investment growth as a simplification. "
+                                 "Real-world LTCG tax is only due on realised gains at withdrawal and includes "
+                                 "a ₹1.25 L annual exemption (INR) or 0%/15%/20% bracket rates (USD). "
+                                 "This model is intentionally conservative — actual tax owed will typically be lower."
+                             ),
+                             key=f"tax_rate_{currency}") / 100
 
     with st.expander("🎯 FI Target", expanded=False):
         selected_target = st.selectbox(
