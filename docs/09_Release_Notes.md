@@ -3,6 +3,25 @@
 
 ---
 
+## Release 0.7 — 2026-08-11
+
+### Bug Fix
+
+#### Passive Income Not Counted in Pre-Retirement Corpus Accumulation
+
+**Problem:** `annual_passive_income` was only used to reduce withdrawals during
+retirement. Passive income received before retirement (dividends, rental income,
+interest) was not contributing to corpus accumulation, understating projected assets.
+
+**Fix:** `calculate_fi_targets()` now adds `annual_passive_income` to
+`average_annual_savings` to form the total annual pre-retirement inflow used
+in the projected-assets formula. `annual_passive_income` therefore applies to
+both phases: it builds the corpus before retirement and offsets withdrawals after.
+
+The sidebar help text and Section 7.1 of the Detailed Design have been updated.
+
+---
+
 ## Release 0.6 — 2026-08-09
 
 ### UX Improvements

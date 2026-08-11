@@ -127,7 +127,7 @@ with st.sidebar:
     with _col_pi:
         passive_income = st.number_input(
             f"Passive Income ({_symbol})", min_value=0, value=0, step=_step_medium,
-            help="Rental / dividend income received after retirement",
+        help="Rental / dividend / interest income — counts toward corpus accumulation before retirement and offsets expenses after retirement",
             key=f"passive_income_{currency}",
         )
 
@@ -222,6 +222,8 @@ with col2:
         _fmt(fi.projected_assets),
         delta=_fmt(fi.projected_assets - fi.current_assets) + " from savings"
         if fi.projected_assets != fi.current_assets else None,
+        help=f"Current assets compounded at the typical return ({typical_return*100:g}%) to retirement, "
+             f"plus annual savings and passive income accumulated over the same period.",
     )
 
 with col3:
@@ -256,7 +258,7 @@ with t1:
         _fmt(fi.sleep_okay_corpus),
         delta=f"{_fmt(abs(delta_okay))} {'surplus' if delta_okay >= 0 else 'needed'}",
         delta_color="normal" if delta_okay >= 0 else "inverse",
-        help=f"Minimum corpus / nest egg assuming typical market returns ({typical_return:.0%}).",
+        help=f"Minimum corpus / nest egg assuming typical market returns ({typical_return*100:g}%).",
     )
 
 with t2:
@@ -266,7 +268,7 @@ with t2:
         _fmt(fi.sleep_well_corpus),
         delta=f"{_fmt(abs(delta_well))} {'surplus' if delta_well >= 0 else 'needed'}",
         delta_color="normal" if delta_well >= 0 else "inverse",
-        help=f"Minimum corpus / nest egg assuming conservative returns ({conservative_return:.0%}).",
+        help=f"Minimum corpus / nest egg assuming conservative returns ({conservative_return*100:g}%).",
     )
 
 with t3:
@@ -276,7 +278,7 @@ with t3:
         _fmt(fi.sleep_best_corpus),
         delta=f"{_fmt(abs(delta_best))} {'surplus' if delta_best >= 0 else 'needed'}",
         delta_color="normal" if delta_best >= 0 else "inverse",
-        help=f"Minimum corpus / nest egg assuming risk-free / FD returns ({risk_free_return:.0%}).",
+        help=f"Minimum corpus / nest egg assuming risk-free / FD returns ({risk_free_return*100:g}%).",
     )
 
 # ── Assumption summary ────────────────────────────────────────────────────────
@@ -333,10 +335,10 @@ def _build_df(simulation):
     return pd.DataFrame(rows)
 
 # Chart — closing corpus under 4 return scenarios
-_opt_label  = f"Optimistic ({optimistic_return:.0%})"
-_typ_label  = f"Typical ({typical_return:.0%})"
-_con_label  = f"Conservative ({conservative_return:.0%})"
-_rf_label   = f"Risk-Free ({risk_free_return:.0%})"
+_opt_label  = f"Optimistic ({optimistic_return*100:g}%)"
+_typ_label  = f"Typical ({typical_return*100:g}%)"
+_con_label  = f"Conservative ({conservative_return*100:g}%)"
+_rf_label   = f"Risk-Free ({risk_free_return*100:g}%)"
 
 def _corpus_rows(simulation, label):
     return [{"Year": r.year, "Series": label, "Value": r.closing_corpus}
@@ -378,7 +380,7 @@ st.caption(
 
 # Table
 with st.expander("Year-by-Year Table", expanded=False):
-    _rf_label = f"Risk-Free ({risk_free_return:.0%})"
+    _rf_label = f"Risk-Free ({risk_free_return*100:g}%)"
     _table_scenario = st.radio(
         "Return scenario",
         [_opt_label, _typ_label, _con_label, _rf_label],

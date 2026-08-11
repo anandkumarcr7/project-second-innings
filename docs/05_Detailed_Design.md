@@ -153,32 +153,37 @@ All three rates are user-configurable. The three targets answer three distinct q
 
 ## 7.1 Projected Assets at Retirement
 
-Before evaluating the funding gap, current assets are augmented with expected
-future savings accumulated between now and the planned retirement age.
+Before evaluating the funding gap, current assets are augmented with all
+annual inflows accumulated between now and the planned retirement age.
+Annual inflows include both active savings and passive income (dividends,
+rental income, interest) that is already being received before retirement.
 
 ```text
 Years to Retirement
     = Retirement Age − Current Age
+
+Annual Pre-Retirement Inflow
+    = Average Annual Savings + Annual Passive Income
 
 Growth Factor
     = (1 + Typical Return)^(Years to Retirement)
 
 Projected Assets
     = Current Assets × Growth Factor
-      + Average Annual Savings × (Growth Factor − 1) / Typical Return
+      + Annual Pre-Retirement Inflow × (Growth Factor − 1) / Typical Return
 ```
 
-Savings are assumed to be deposited at the end of each pre-retirement year
+Inflows are assumed to be deposited at the end of each pre-retirement year
 and then compound at the typical return rate for the remaining years.
 When Typical Return = 0, the formula reduces to:
 
 ```text
 Projected Assets
-    = Current Assets + Years to Retirement × Average Annual Savings
+    = Current Assets + Years to Retirement × Annual Pre-Retirement Inflow
 ```
 
-When Average Annual Savings = 0, Projected Assets = Current Assets compounded
-at the typical return over the pre-retirement period.
+`annual_passive_income` applies to **both** phases: it builds the corpus
+before retirement and offsets withdrawals after retirement.
 
 ## 7.2 Funding Gap and FI Status
 

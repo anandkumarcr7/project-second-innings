@@ -221,19 +221,23 @@ def calculate_fi_targets(
 
     years_to_retirement = max(scenario.retirement_age - scenario.current_age, 0)
     r = scenario.typical_return
+    # Annual inflow before retirement: active savings + passive income (dividends, rent, etc.)
+    annual_pre_retirement_inflow = (
+        scenario.average_annual_savings + scenario.annual_passive_income
+    )
     if r == 0.0:
         # Avoid division by zero; linear accumulation is exact when return = 0.
         projected_assets = (
             scenario.current_assets
-            + years_to_retirement * scenario.average_annual_savings
+            + years_to_retirement * annual_pre_retirement_inflow
         )
     else:
-        # Current assets compound at the typical return rate; annual savings are
-        # added at the end of each pre-retirement year and also compound.
+        # Current assets compound at the typical return rate; annual inflow is
+        # added at the end of each pre-retirement year and also compounds.
         growth_factor = (1 + r) ** years_to_retirement
         projected_assets = (
             scenario.current_assets * growth_factor
-            + scenario.average_annual_savings * (growth_factor - 1) / r
+            + annual_pre_retirement_inflow * (growth_factor - 1) / r
         )
 
     funding_gap = target_corpus - projected_assets

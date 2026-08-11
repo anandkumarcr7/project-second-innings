@@ -25,7 +25,7 @@ class RetirementScenario:
     retirement_duration_years: int
     monthly_expenses: float          # current monthly retirement expenses
     current_assets: float            # current investable / liquid assets
-    annual_passive_income: float     # passive income received after retirement
+    annual_passive_income: float     # passive income (applies both before and after retirement)
     inflation_rate: float            # e.g. 0.07 for 7%
     conservative_return: float       # e.g. 0.07
     typical_return: float            # e.g. 0.09
