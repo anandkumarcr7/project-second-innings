@@ -252,6 +252,41 @@ Years 1–5 Expenses
 ## 8.6 Loss of Passive Income
 Set passive income to zero.
 
+## 8.7 Historical Crisis Replays
+
+Five additional tests replay real market history against the user's own plan.
+Year 1 of retirement is mapped to the first year of the window; each year then
+uses that year's **actual nominal equity total return** together with that
+year's **actual CPI inflation**, keeping the two series internally consistent.
+Years beyond the ten-year window revert to the user's own assumptions.
+
+| Test | Index | Window |
+|---|---|---|
+| Great Depression | S&P Composite | 1929–1938 |
+| Stagflation | S&P 500 | 1973–1982 |
+| Japan Lost Decade | Nikkei 225 | 1990–1999 |
+| Dot-com + GFC | S&P 500 | 2000–2009 |
+| Retiring into the GFC | S&P 500 | 2008–2017 |
+
+The 2008 crash deliberately appears in two windows. In `2000–09` it lands in
+year 9, after eight years of compounding; in `2008–17` it lands in year 1. The
+second is the sequence-of-returns test — the same crash is far more damaging
+when it hits a portfolio that has not yet built any cushion.
+
+Because `simulate()` already inflates expenses at the user's assumed rate, the
+historical CPI series is injected via `expense_multiplier_sequence`, where each
+multiplier is the ratio of the real historical price level to the assumed one:
+
+    multiplier(y) = historical_price_level(y) / (1 + assumed_inflation)^(y-1)
+
+Once the window ends, prices resume growing at the assumed rate, so the
+accumulated divergence stays permanently baked into the expense path. This is
+what makes the Great Depression (deflationary) and Stagflation (inflationary)
+scenarios behave so differently despite similar equity drawdowns.
+
+These replays assume a 100% equity portfolio and are therefore deliberately
+harsher than a realistic retiree allocation.
+
 # 9 Calculation Order
 
 The initial annual model will use the following order:

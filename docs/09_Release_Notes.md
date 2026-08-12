@@ -3,6 +3,47 @@
 
 ---
 
+## Release 0.8 — 2026-08-12
+
+### New Feature
+
+#### Historical Crisis Replays in the Stress-Test Suite
+
+Five new stress tests replay actual market and inflation history against the
+user's own plan: the **Great Depression (1929–38)**, **Stagflation (1973–82)**,
+the **Japan Lost Decade (1990–99)**, **Dot-com + GFC (2000–09)**, and
+**Retiring into the GFC (2008–17)**.
+
+The 2008 crash appears in two windows on purpose — as year 9 of the 2000–09
+window and as year 1 of the 2008–17 window — to expose sequence-of-returns
+risk. The same −37% year is survivable late and often fatal early.
+
+Each maps year 1 of retirement to the first year of the crisis and applies that
+year's real nominal equity return alongside that year's real CPI print, so the
+deflation of the 1930s and the double-digit inflation of the 1970s are modelled
+faithfully rather than being flattened into a single average. Years past the
+ten-year window revert to the user's own assumptions.
+
+Historical CPI is injected through the existing `expense_multiplier_sequence`
+hook, so no change to the core simulation loop was required.
+
+These scenarios assume a 100% equity portfolio and are intentionally severe; a
+caption under the stress-test table now says so.
+
+### Bug Fix
+
+- Loading a scenario file crashed with `NameError` because the sidebar JSON
+  preview referenced `dataclasses.asdict` while only the `_dc` alias was
+  imported.
+
+### Documentation
+
+- Tax-rate tooltip now explains that tax is applied to all annual growth as a
+  conservative simplification, whereas real capital-gains tax is only due on
+  realised gains at withdrawal.
+
+---
+
 ## Release 0.7 — 2026-08-11
 
 ### Bug Fix

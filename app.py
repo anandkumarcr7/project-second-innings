@@ -462,6 +462,15 @@ st.dataframe(
     hide_index=True,
 )
 
+st.caption(
+    "The last five tests replay **real history**: year 1 of your retirement is mapped to the "
+    "first year of each window, using that decade's actual nominal equity returns and actual CPI "
+    "inflation together. They assume a 100% equity portfolio, so they are deliberately harsh — "
+    "a bond allocation would soften every one of them. Note that 2008 appears twice on purpose: "
+    "once late in the 2000–09 window and once as year 1, to show how much the *timing* of a crash "
+    "matters."
+)
+
 # ── Section 5: Scenario Management ───────────────────────────────────────────
 
 st.header("Scenario Management")
@@ -488,7 +497,7 @@ with sm_col2:
             loaded = load_scenario(tmp_path)
             os.unlink(tmp_path)
             st.success(f"Loaded: **{loaded.scenario_name}**")
-            st.json(dataclasses.asdict(loaded))
+            st.json(_dc.asdict(loaded))
         except ValueError as exc:
             st.error(str(exc))
 

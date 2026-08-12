@@ -270,12 +270,107 @@ def _classify_severity(result: str, failure_year: Optional[int], duration: int) 
     return "Medium"
 
 
+# ---------------------------------------------------------------------------
+# Historical crisis replays (Section 8.7)
+# ---------------------------------------------------------------------------
+
+@dataclasses.dataclass(frozen=True)
+class HistoricalCrisis:
+    """
+    A real historical decade replayed against the user's own retirement plan.
+
+    ``returns`` are *nominal* annual total returns for a 100%-equity portfolio
+    and ``inflation`` are the actual CPI prints for the same years, so the two
+    series stay internally consistent (the engine applies nominal growth and
+    inflates expenses separately).  Year 1 of retirement is mapped to the first
+    year of the window; any years beyond the window fall back to the user's own
+    assumptions.
+    """
+
+    name: str
+    market: str
+    returns: tuple
+    inflation: tuple
+
+
+HISTORICAL_CRISES: List[HistoricalCrisis] = [
+    HistoricalCrisis(
+        name="Great Depression (1929–38)",
+        market="S&P Composite",
+        returns=(-0.0842, -0.2490, -0.4334, -0.0819, 0.5399,
+                 -0.0144, 0.4767, 0.3392, -0.3503, 0.3112),
+        inflation=(0.000, -0.027, -0.089, -0.103, -0.052,
+                   0.035, 0.026, 0.010, 0.037, -0.020),
+    ),
+    HistoricalCrisis(
+        name="Stagflation (1973–82)",
+        market="S&P 500",
+        returns=(-0.1466, -0.2647, 0.3720, 0.2384, -0.0718,
+                 0.0656, 0.1844, 0.3242, -0.0491, 0.2155),
+        inflation=(0.062, 0.110, 0.091, 0.058, 0.065,
+                   0.076, 0.113, 0.135, 0.103, 0.062),
+    ),
+    HistoricalCrisis(
+        name="Japan Lost Decade (1990–99)",
+        market="Nikkei 225",
+        returns=(-0.3872, -0.0362, -0.2636, 0.0284, 0.1324,
+                 0.0072, -0.0261, -0.2119, -0.0925, 0.3661),
+        inflation=(0.031, 0.033, 0.017, 0.012, 0.007,
+                   -0.001, 0.001, 0.018, 0.007, -0.003),
+    ),
+    HistoricalCrisis(
+        name="Dot-com + GFC (2000–09)",
+        market="S&P 500",
+        returns=(-0.0910, -0.1189, -0.2210, 0.2868, 0.1088,
+                 0.0491, 0.1579, 0.0549, -0.3700, 0.2646),
+        inflation=(0.034, 0.028, 0.016, 0.023, 0.027,
+                   0.034, 0.032, 0.028, 0.038, -0.004),
+    ),
+    HistoricalCrisis(
+        name="Retiring into the GFC (2008–17)",
+        market="S&P 500",
+        returns=(-0.3700, 0.2646, 0.1506, 0.0211, 0.1600,
+                 0.3239, 0.1369, 0.0138, 0.1196, 0.2183),
+        inflation=(0.038, -0.004, 0.016, 0.032, 0.021,
+                   0.015, 0.016, 0.001, 0.013, 0.021),
+    ),
+]
+
+
+def _historical_expense_multipliers(
+    historical_inflation: tuple,
+    assumed_inflation: float,
+    duration: int,
+) -> List[float]:
+    """
+    Translate an actual CPI series into expense multipliers for :func:`simulate`.
+
+    ``simulate`` already inflates expenses at *assumed_inflation*, so each
+    multiplier is the ratio of the real historical price level to the assumed
+    one.  Once the historical window ends, prices resume growing at the assumed
+    rate, which leaves the accumulated divergence permanently baked in.
+    """
+    multipliers: List[float] = []
+    price_level = 1.0
+    for year in range(1, duration + 1):
+        if year > 1:
+            index = year - 2
+            rate = (historical_inflation[index]
+                    if index < len(historical_inflation)
+                    else assumed_inflation)
+            price_level *= (1 + rate)
+        multipliers.append(price_level / (1 + assumed_inflation) ** (year - 1))
+    return multipliers
+
+
 def run_stress_tests(
     scenario: RetirementScenario,
     opening_corpus: Optional[float] = None,
 ) -> List[StressTestResult]:
     """
-    Run the predefined suite of six deterministic stress tests (FR-029).
+    Run the predefined deterministic stress-test suite (FR-029), followed by a
+    set of historical crisis replays that map real market and CPI history onto
+    the user's own retirement plan.
 
     Each test uses *opening_corpus* as the starting corpus.
     If *opening_corpus* is None, ``scenario.current_assets`` is used.
@@ -366,5 +461,33 @@ def run_stress_tests(
         ending_corpus=sim.ending_corpus,
         severity=_classify_severity(sim.result, sim.failure_year, duration),
     ))
+
+    # ── 7. Historical crisis replays (Section 8.7) ───────────────────────
+    for crisis in HISTORICAL_CRISES:
+        sim = simulate(
+            scenario, corpus, scenario.typical_return,
+            return_rate_sequence=list(crisis.returns),
+            expense_multiplier_sequence=_historical_expense_multipliers(
+                crisis.inflation, scenario.inflation_rate, duration),
+        )
+        window_return = 1.0
+        for rate in crisis.returns:
+            window_return *= (1 + rate)
+        window_inflation = 1.0
+        for rate in crisis.inflation:
+            window_inflation *= (1 + rate)
+        results.append(StressTestResult(
+            test_name=crisis.name,
+            assumptions_changed={
+                "index": crisis.market,
+                "worst_year": f"{min(crisis.returns):.0%}",
+                "decade_return": f"{window_return - 1:+.0%}",
+                "decade_inflation": f"{window_inflation - 1:+.0%}",
+            },
+            result=sim.result,
+            failure_year=sim.failure_year,
+            ending_corpus=sim.ending_corpus,
+            severity=_classify_severity(sim.result, sim.failure_year, duration),
+        ))
 
     return results
